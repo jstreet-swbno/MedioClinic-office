@@ -1,3 +1,4 @@
+using Autofac;
 using Kentico.Content.Web.Mvc;
 using Kentico.Content.Web.Mvc.Routing;
 using Kentico.Web.Mvc;
@@ -7,8 +8,11 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Reflection;
+using XperienceAdapter.Configuration;
+using XperienceAdapter.Localization;
 
-namespace BlankSiteCore
+namespace MedioClinic
 {
     public class Startup
     {
@@ -20,6 +24,22 @@ namespace BlankSiteCore
             Environment = environment;
         }
 
+        public AutoFacConfig AutoFacConfig => new AutoFacConfig();
+
+        private void RegisterInitializationHandler(ContainerBuilder builder) =>
+            CMS.Base.ApplicationEvents.Initialized.Execute += (sender, eventArgs) => AutoFacConfig.ConfigureContainer(builder);
+
+        public void ConfigureContainer(ContainerBuilder builder)
+        {
+            try
+            {
+                AutoFacConfig.ConfigureContainer(builder);
+            }
+            catch
+            {
+                RegisterInitializationHandler(builder);
+            }
+        }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
@@ -35,11 +55,14 @@ namespace BlankSiteCore
                 // features.UseEmailTracking();
                 // features.UseCampaignLogger();
                 // features.UseScheduler();
-                // features.UsePageRouting();
+                features.UsePageRouting(new PageRoutingOptions { CultureCodeRouteValuesKey = "culture" });
             });
+            
+            services.AddAntiforgery();
 
             if (Environment.IsDevelopment())
             {
+
                 // By default, Xperience sends cookies using SameSite=Lax. If the administration and live site applications
                 // are hosted on separate domains, this ensures cookies are set with SameSite=None and Secure. The configuration
                 // only applies when communicating with the Xperience administration via preview links. Both applications also need 
@@ -53,10 +76,20 @@ namespace BlankSiteCore
                 kenticoServiceCollection.DisableVirtualContextSecurityForLocalhost();
             }
 
-            services.AddAuthentication();
+            //services.AddAuthentication();
             // services.AddAuthorization();
 
-            services.AddControllersWithViews();
+            services.AddLocalization();
+            services.AddControllersWithViews()
+                    .AddDataAnnotationsLocalization(options =>
+                    {
+                        options.DataAnnotationLocalizerProvider = (type, factory) =>
+                        {
+                            var assemblyName = typeof(SharedResource).GetTypeInfo().Assembly.GetName().Name;
+
+                            return factory.Create("SharedResource", assemblyName);
+                        };
+                    });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -65,6 +98,7 @@ namespace BlankSiteCore
             if (Environment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                app.UseBrowserLink();
             }
 
             app.UseStaticFiles();
@@ -75,17 +109,12 @@ namespace BlankSiteCore
 
             app.UseCors();
 
-            app.UseAuthentication();
+            //app.UseAuthentication();
             // app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.Kentico().MapRoutes();
-
-                endpoints.MapGet("/", async context =>
-                {
-                    await context.Response.WriteAsync("The site has not been configured yet.");
-                });
             });
         }
     }
