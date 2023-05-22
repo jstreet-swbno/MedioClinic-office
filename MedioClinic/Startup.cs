@@ -1,4 +1,5 @@
 using Autofac;
+using Common.Configuration;
 using Kentico.Content.Web.Mvc;
 using Kentico.Content.Web.Mvc.Routing;
 using Kentico.Web.Mvc;
@@ -6,6 +7,7 @@ using Kentico.Web.Mvc;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Reflection;
@@ -22,7 +24,10 @@ namespace MedioClinic
         public Startup(IWebHostEnvironment environment)
         {
             Environment = environment;
+            Options = configuration.GetSection(nameof(XperienceOptions));
         }
+
+        public IConfigurationSection? Options { get; }
 
         public AutoFacConfig AutoFacConfig => new AutoFacConfig();
 
@@ -78,6 +83,7 @@ namespace MedioClinic
 
             //services.AddAuthentication();
             // services.AddAuthorization();
+            services.Configure<XperienceOptions>(Options);
 
             services.AddLocalization();
             services.AddControllersWithViews()

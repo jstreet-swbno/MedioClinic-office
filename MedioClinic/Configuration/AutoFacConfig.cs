@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using XperienceAdapter.Localization;
 using XperienceAdapter.Repositories;
+using XperienceAdapter.Services;
 
 namespace XperienceAdapter.Configuration
 {
@@ -37,6 +38,9 @@ namespace XperienceAdapter.Configuration
 
             builder.RegisterType<XperienceStringLocalizerFactory>().As<IStringLocalizerFactory>()
                 .InstancePerLifetimeScope();
+
+            builder.RegisterType<RepositoryServices>().As<IRepositoryServices>()
+    .InstancePerLifetimeScope();
         }
     }
 }
