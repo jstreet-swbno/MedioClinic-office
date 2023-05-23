@@ -110,6 +110,7 @@ namespace MedioClinic
             app.UseStaticFiles();
 
             app.UseKentico();
+            app.UseRequestCulture();
 
             app.UseCookiePolicy();
 

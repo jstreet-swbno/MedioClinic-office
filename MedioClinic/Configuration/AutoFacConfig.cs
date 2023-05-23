@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using Business.Repositories;
 using Common;
 using Microsoft.Extensions.Localization;
 using System;
@@ -40,7 +41,11 @@ namespace XperienceAdapter.Configuration
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<RepositoryServices>().As<IRepositoryServices>()
-    .InstancePerLifetimeScope();
+                    .InstancePerLifetimeScope();
+
+            builder.RegisterType<NavigationRepository>()
+                    .As<INavigationRepository>()
+                    .InstancePerLifetimeScope();
         }
     }
 }
