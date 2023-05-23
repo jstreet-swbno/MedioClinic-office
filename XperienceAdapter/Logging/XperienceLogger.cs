@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 
 namespace XperienceAdapter.Logging
 {
+    /// <summary>
+    /// Xperience implementation of <see cref="ILogger{TCategoryName}"/>.
+    /// </summary>
     public class XperienceLogger : ILogger
     {
         private readonly string _name;

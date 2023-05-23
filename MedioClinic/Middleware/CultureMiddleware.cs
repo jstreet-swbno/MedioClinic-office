@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System.Threading;
 using System;
+using System.Threading.Tasks;
 
 namespace MedioClinic.Middleware
 {

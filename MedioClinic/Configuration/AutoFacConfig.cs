@@ -12,7 +12,7 @@ using XperienceAdapter.Localization;
 using XperienceAdapter.Repositories;
 using XperienceAdapter.Services;
 
-namespace XperienceAdapter.Configuration
+namespace MedioClinic.Configuration
 {
     public class AutoFacConfig
     {

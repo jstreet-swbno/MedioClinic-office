@@ -40,11 +40,11 @@ namespace XperienceAdapter.Localization
         }
 
         private string GetString(string key) =>
-            ResHelper.GetString(key, _cultureName);
+            ResHelper.GetString(key, Thread.CurrentThread.CurrentUICulture.Name);
 
         public IEnumerable<LocalizedString> GetAllStrings(bool includeParentCultures) =>
             throw new NotImplementedException();
 
-        public IStringLocalizer WithCulture(CultureInfo culture) => new XperienceStringLocalizer(culture);
+        public IStringLocalizer WithCulture(CultureInfo culture) => throw new NotImplementedException();
     }
 }

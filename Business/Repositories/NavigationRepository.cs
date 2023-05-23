@@ -1,17 +1,21 @@
-﻿using Business.Models;
-using CMS.DataEngine;
-using CMS.DocumentEngine;
-using CMS.Helpers.Caching;
-using CMS.SiteProvider;
-using Kentico.Content.Web.Mvc;
-using Microsoft.Extensions.Caching.Memory;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
+
+using CMS.DataEngine;
+using CMS.DocumentEngine;
+using CMS.DocumentEngine.Routing;
+using CMS.SiteProvider;
+using Kentico.Content.Web.Mvc;
+
 using XperienceAdapter.Models;
 using XperienceAdapter.Repositories;
+using XperienceAdapter.Extensions;
+using Business.Models;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
+using CMS.Helpers.Caching;
 
 namespace Business.Repositories
 {
@@ -62,38 +66,138 @@ namespace Business.Repositories
             _memoryCache = memoryCache ?? throw new ArgumentNullException(nameof(memoryCache));
             _cacheDependencyAdapter = cacheDependencyAdapter ?? throw new ArgumentNullException(nameof(cacheDependencyAdapter));
             _pageUrlRetriever = pageUrlRetriever ?? throw new ArgumentNullException(nameof(pageUrlRetriever));
-            _basicPageRepository = basicPageRepository ?? throw new ArgumentNullException(nameof(basePageRepository));
+            _basicPageRepository = basicPageRepository ?? throw new ArgumentNullException(nameof(basicPageRepository));
             _cultureRepository = siteCultureRepository ?? throw new ArgumentNullException(nameof(siteCultureRepository));
         }
 
-        /// <summary>
-        /// Get a relative URL of a page for a navigation item.
-        /// </summary>
-        /// <param name="item">Navigation item.</param>
-        /// <returns>Relative URL.</returns>
-        private string? GetPageUrl(NavigationItem item)
+        public async Task<Dictionary<SiteCulture, NavigationItem>> GetWholeNavigationAsync(CancellationToken? cancellationToken = default) =>
+            await GetContentTreeNavigationAsync(cancellationToken);
+
+        public async Task<NavigationItem> GetNavigationAsync(SiteCulture? siteCulture = default, CancellationToken? cancellationToken = default) =>
+            await GetContentTreeNavigationAsync(siteCulture, cancellationToken);
+
+        public NavigationItem? GetNavigationItemByNodeId(int nodeId, NavigationItem startPointItem)
         {
-            var culture = item?.Culture?.IsoCode;
-
-            try
+            if (startPointItem != null)
             {
-                var url = _pageUrlRetriever.Retrieve(item?.NodeAliasPath, culture)?.RelativePath?.ToLowerInvariant()!;
+                if (startPointItem.NodeId == nodeId)
+                {
+                    return startPointItem;
+                }
+                else
+                {
+                    var matches = new List<NavigationItem>();
 
-                return url;
-            }
-            catch
-            {
-                return null;
+                    foreach (var child in startPointItem.ChildItems)
+                    {
+                        var childMatch = GetNavigationItemByNodeId(nodeId, child);
+                        matches.Add(childMatch!);
+                    }
+
+                    return matches.FirstOrDefault(match => match != null);
+                }
             }
 
+            return null;
         }
 
         /// <summary>
-        /// Gets a URL for a content tree-based navigation item.
+        /// Gets navigation hierarchies for all cultures, based on data provided by the CTB router.
         /// </summary>
-        /// <param name="item">Item to get the URL for.</param>
-        /// <returns>URL.</returns>
-        private string? GetContentTreeBasedUrl(NavigationItem item) => GetPageUrl(item);
+        /// <returns>All navigation hierarchies.</returns>
+        private async Task<Dictionary<SiteCulture, NavigationItem>> GetContentTreeNavigationAsync(CancellationToken? cancellationToken)
+        {
+            var cultures = await _cultureRepository.GetAllAsync();
+            var cultureSpecificNavigations = new Dictionary<SiteCulture, NavigationItem>();
+
+            if (cultures != null && cultures.Any())
+            {
+                foreach (var culture in cultures)
+                {
+                    cultureSpecificNavigations.Add(culture, await GetContentTreeNavigationAsync(culture, cancellationToken));
+                }
+            }
+
+            return cultureSpecificNavigations;
+        }
+
+        /// <summary>
+        /// Gets a navigation hierarchy based on data provided by the CTB router.
+        /// </summary>
+        /// <param name="siteCulture">Site culture.</param>
+        /// <returns>Navigation hierarchy of a given culture.</returns>
+        private async Task<NavigationItem> GetContentTreeNavigationAsync(SiteCulture? siteCulture, CancellationToken? cancellationToken)
+        {
+            var checkedCulture = GetSiteCulture(siteCulture);
+            NavigationItem navigation;
+
+            if (!_memoryCache.TryGetValue(checkedCulture.IsoCode, out navigation))
+            {
+                var allItems = (await _basicPageRepository.GetPagesByTypeAndCultureAsync(
+                    NavigationEnabledPageTypes,
+                    checkedCulture,
+                    $"{nameof(NavigationRepository)}|{nameof(GetContentTreeNavigationAsync)}|{checkedCulture.IsoCode}",
+                    filter => GetDefaultFilter(filter)
+                        .MenuItems(),
+                    cacheDependencies: NavigationEnabledTypeDependencies.ToArray(),
+                    cancellationToken: cancellationToken))
+                        .Select(basicPage => MapBaseToNavigationDto(basicPage));
+
+                navigation = DecorateItems(RootDto, allItems, GetContentTreeBasedUrl);
+                var changeToken = _cacheDependencyAdapter.GetChangeToken(NavigationEnabledTypeDependencies?.ToArray());
+
+                _memoryCache.Set(checkedCulture.IsoCode, navigation, changeToken);
+            }
+
+            return navigation;
+        }
+
+        private SiteCulture GetSiteCulture(SiteCulture? siteCulture) =>
+            siteCulture
+            ?? Thread.CurrentThread.CurrentUICulture.ToSiteCulture()
+            ?? throw new Exception($"The {nameof(siteCulture)} parameter is either null or not a valid site culture.");
+
+        /// <summary>
+        /// Maps the <see cref="BasicPage"/> onto a new <see cref="NavigationItem"/>.
+        /// </summary>
+        /// <param name="basicPage">The base page.</param>
+        /// <returns>The navigation item.</returns>
+        private static NavigationItem MapBaseToNavigationDto(BasicPage basicPage) => new NavigationItem
+        {
+            NodeId = basicPage.NodeId,
+            Guid = basicPage.Guid,
+            ParentId = basicPage.ParentId,
+            Name = basicPage.Name,
+            NodeAliasPath = basicPage.NodeAliasPath,
+            Culture = basicPage.Culture
+        };
+
+        /// <summary>
+        /// Gets default <see cref="DocumentQuery{TDocument}"/> configuration.
+        /// </summary>
+        /// <param name="query">The query.</param>
+        /// <returns>The modified query.</returns>
+        private static MultiDocumentQuery GetDefaultFilter(MultiDocumentQuery query)
+        {
+            query
+                .FilterDuplicates()
+                .OrderByAscending(NodeOrdering);
+
+            return query;
+        }
+
+        /// <summary>
+        /// Decorates items with references and URLs.
+        /// </summary>
+        /// <param name="root">Root navigation item.</param>
+        /// <param name="defaultCultureItems">A flat sequence of all other items.</param>
+        /// <returns></returns>
+        public NavigationItem DecorateItems(NavigationItem root, IEnumerable<NavigationItem> navigationItems, Func<NavigationItem, string?> urlDecorator)
+        {
+            var connectableItems = GetConnectableItems(navigationItems.Concat(new[] { root })).ToList();
+
+            return BuildHierarchyLevel(root, connectableItems, urlDecorator);
+        }
 
         /// <summary>
         /// Filters out items with orphaned <see cref="NavigationItem.ParentId"/> values.
@@ -134,101 +238,32 @@ namespace Business.Repositories
         }
 
         /// <summary>
-        /// Decorates items with references and URLs.
+        /// Gets a URL for a content tree-based navigation item.
         /// </summary>
-        /// <param name="root">Root navigation item.</param>
-        /// <param name="defaultCultureItems">A flat sequence of all other items.</param>
-        /// <returns></returns>
-        public NavigationItem DecorateItems(NavigationItem root, IEnumerable<NavigationItem> navigationItems, Func<NavigationItem, string?> urlDecorator)
-        {
-            var connectableItems = GetConnectableItems(navigationItems.Concat(new[] { root })).ToList();
-
-            return BuildHierarchyLevel(root, connectableItems, urlDecorator);
-        }
-
-        private SiteCulture GetSiteCulture(SiteCulture? siteCulture) =>
-    siteCulture
-    ?? Thread.CurrentThread.CurrentUICulture.ToSiteCulture()
-    ?? throw new Exception($"The {nameof(siteCulture)} parameter is either null or not a valid site culture.");
+        /// <param name="item">Item to get the URL for.</param>
+        /// <returns>URL.</returns>
+        private string? GetContentTreeBasedUrl(NavigationItem item) => GetPageUrl(item);
 
         /// <summary>
-        /// Maps the <see cref="BasicPage"/> onto a new <see cref="NavigationItem"/>.
+        /// Get a relative URL of a page for a navigation item.
         /// </summary>
-        /// <param name="basicPage">The base page.</param>
-        /// <returns>The navigation item.</returns>
-        private static NavigationItem MapBaseToNavigationDto(BasicPage basicPage) => new NavigationItem
+        /// <param name="item">Navigation item.</param>
+        /// <returns>Relative URL.</returns>
+        private string? GetPageUrl(NavigationItem item)
         {
-            NodeId = basicPage.NodeId,
-            Guid = basicPage.Guid,
-            ParentId = basicPage.ParentId,
-            Name = basicPage.Name,
-            NodeAliasPath = basicPage.NodeAliasPath,
-            Culture = basicPage.Culture
-        };
+            var culture = item?.Culture?.IsoCode;
 
-        /// <summary>
-        /// Gets default <see cref="DocumentQuery{TDocument}"/> configuration.
-        /// </summary>
-        /// <param name="query">The query.</param>
-        /// <returns>The modified query.</returns>
-        private static MultiDocumentQuery GetDefaultFilter(MultiDocumentQuery query)
-        {
-            query
-                .FilterDuplicates()
-                .OrderByAscending(NodeOrdering);
-
-            return query;
-        }
-
-        /// <summary>
-        /// Gets a navigation hierarchy based on data provided by the CTB router.
-        /// </summary>
-        /// <param name="siteCulture">Site culture.</param>
-        /// <returns>Navigation hierarchy of a given culture.</returns>
-        private async Task<NavigationItem> GetContentTreeNavigationAsync(SiteCulture? siteCulture, CancellationToken? cancellationToken)
-        {
-            var checkedCulture = GetSiteCulture(siteCulture);
-            NavigationItem navigation;
-
-            if (!_memoryCache.TryGetValue(checkedCulture.IsoCode, out navigation))
+            try
             {
-                var allItems = (await _basicPageRepository.GetPagesByTypeAndCultureAsync(
-                    NavigationEnabledPageTypes,
-                    checkedCulture,
-                    $"{nameof(NavigationRepository)}|{nameof(GetContentTreeNavigationAsync)}|{checkedCulture.IsoCode}",
-                    filter => GetDefaultFilter(filter)
-                        .MenuItems(),
-                    cacheDependencies: NavigationEnabledTypeDependencies.ToArray(),
-                    cancellationToken: cancellationToken))
-                        .Select(basicPage => MapBaseToNavigationDto(basicPage));
+                var url = _pageUrlRetriever.Retrieve(item?.NodeAliasPath, culture)?.RelativePath?.ToLowerInvariant()!;
 
-                navigation = DecorateItems(RootDto, allItems, GetContentTreeBasedUrl);
-                var changeToken = _cacheDependencyAdapter.GetChangeToken(NavigationEnabledTypeDependencies?.ToArray());
-
-                _memoryCache.Set(checkedCulture.IsoCode, navigation, changeToken);
+                return url;
+            }
+            catch
+            {
+                return null;
             }
 
-            return navigation;
-        }
-
-        /// <summary>
-        /// Gets navigation hierarchies for all cultures, based on data provided by the CTB router.
-        /// </summary>
-        /// <returns>All navigation hierarchies.</returns>
-        private async Task<Dictionary<SiteCulture, NavigationItem>> GetContentTreeNavigationAsync(CancellationToken? cancellationToken)
-        {
-            var cultures = await _cultureRepository.GetAllAsync();
-            var cultureSpecificNavigations = new Dictionary<SiteCulture, NavigationItem>();
-
-            if (cultures != null && cultures.Any())
-            {
-                foreach (var culture in cultures)
-                {
-                    cultureSpecificNavigations.Add(culture, await GetContentTreeNavigationAsync(culture, cancellationToken));
-                }
-            }
-
-            return cultureSpecificNavigations;
         }
     }
 }

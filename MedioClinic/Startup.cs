@@ -1,35 +1,57 @@
-using Autofac;
-using Common.Configuration;
-using Kentico.Content.Web.Mvc;
-using Kentico.Content.Web.Mvc.Routing;
-using Kentico.Web.Mvc;
-
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Reflection;
-using XperienceAdapter.Configuration;
+using Microsoft.Extensions.Options;
+using Autofac;
+
+using CMS.Core;
+using CMS.DataEngine;
+using CMS.Helpers;
+using CMS.SiteProvider;
+using Kentico.Content.Web.Mvc;
+using Kentico.Content.Web.Mvc.Routing;
+using Kentico.PageBuilder.Web.Mvc;
+using Kentico.Membership;
+using Kentico.Web.Mvc;
+
+using Common.Configuration;
 using XperienceAdapter.Localization;
+using MedioClinic.Configuration;
+using MedioClinic.Extensions;
 
 namespace MedioClinic
 {
     public class Startup
     {
+        private const string ConventionalRoutingControllers = "Error";
+
+        public IConfiguration Configuration { get; }
+
         public IWebHostEnvironment Environment { get; }
-
-
-        public Startup(IWebHostEnvironment environment)
-        {
-            Environment = environment;
-            Options = configuration.GetSection(nameof(XperienceOptions));
-        }
 
         public IConfigurationSection? Options { get; }
 
+        public string? DefaultCulture => SettingsKeyInfoProvider.GetValue($"{Options?.GetSection("SiteCodeName")}.CMSDefaultCultureCode");
+
         public AutoFacConfig AutoFacConfig => new AutoFacConfig();
+
+        public Startup(IWebHostEnvironment webHostEnvironment, IConfiguration configuration)
+        {
+            Environment = webHostEnvironment;
+            Configuration = configuration;
+            Options = configuration.GetSection(nameof(XperienceOptions));
+        }
 
         private void RegisterInitializationHandler(ContainerBuilder builder) =>
             CMS.Base.ApplicationEvents.Initialized.Execute += (sender, eventArgs) => AutoFacConfig.ConfigureContainer(builder);
@@ -106,6 +128,34 @@ namespace MedioClinic
                 app.UseDeveloperExceptionPage();
                 app.UseBrowserLink();
             }
+            else
+            {
+                app.UseExceptionHandler(errorApp =>
+                {
+                    errorApp.Run(async context =>
+                    {
+                        context.Response.StatusCode = 500;
+                        context.Response.ContentType = "text/html";
+
+                        await context.Response.WriteAsync("<html lang=\"en\"><body>\r\n");
+                        await context.Response.WriteAsync("An error happened.<br><br>\r\n");
+
+                        var exceptionHandlerPathFeature =
+                            context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerPathFeature>();
+
+                        if (exceptionHandlerPathFeature?.Error is System.IO.FileNotFoundException)
+                        {
+                            await context.Response.WriteAsync("A file error happened.<br><br>\r\n");
+                        }
+
+                        await context.Response.WriteAsync("<a href=\"/\">Home</a><br>\r\n");
+                        await context.Response.WriteAsync("</body></html>\r\n");
+                        await context.Response.WriteAsync(new string(' ', 512)); // IE padding
+                    });
+                });
+            }
+
+            app.UseLocalizedStatusCodePagesWithReExecute("/{0}/error/{1}/");
 
             app.UseStaticFiles();
 

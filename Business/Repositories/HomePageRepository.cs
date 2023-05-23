@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
+
+using XperienceAdapter.Extensions;
 using XperienceAdapter.Repositories;
 using XperienceAdapter.Services;
+using Business.Models;
 
 namespace Business.Repositories
 {

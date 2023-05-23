@@ -27,7 +27,7 @@ namespace Business.Repositories
         public override void MapDtoProperties(CMS.DocumentEngine.Types.MedioClinic.Doctor page, Doctor dto)
         {
             dto.UserId = page.UserAccount;
-            dto.UserName = _userInfoProvider.Get(page.UserAccount).UserName;
+            dto.UserName = _userInfoProvider.Get(page.UserAccount)?.UserName;
             dto.EmergencyShift = GetShiftDayOfWeek(page.Fields.EmergencyShift);
             dto.EmergencyShiftString = page.Fields.EmergencyShift.FirstOrDefault()?.DocumentName;
             dto.Degree = page.Degree;
