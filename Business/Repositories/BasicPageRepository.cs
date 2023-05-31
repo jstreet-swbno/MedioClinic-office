@@ -1,12 +1,8 @@
 ﻿using CMS.DocumentEngine;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+using XperienceAdapter.Services;
 using XperienceAdapter.Models;
 using XperienceAdapter.Repositories;
-using XperienceAdapter.Services;
 
 namespace Business.Repositories
 {

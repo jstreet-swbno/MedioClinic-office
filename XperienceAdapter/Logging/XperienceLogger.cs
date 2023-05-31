@@ -1,12 +1,8 @@
-﻿using CMS.Base;
-using CMS.Core;
-using CMS.EventLog;
+﻿using System;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+using CMS.Core;
+using CMS.Base;
 
 namespace XperienceAdapter.Logging
 {
@@ -24,24 +20,10 @@ namespace XperienceAdapter.Logging
             _name = name ?? throw new ArgumentNullException(nameof(name));
             _eventLogService = eventLogService ?? throw new ArgumentNullException(nameof(eventLogService));
         }
+
         public IDisposable BeginScope<TState>(TState state) => null!;
 
         public bool IsEnabled(LogLevel logLevel) => logLevel != LogLevel.None;
-
-        private EventTypeEnum MapLogLevel(LogLevel logLevel) =>
-            logLevel switch
-            {
-                LogLevel.Trace => EventTypeEnum.Information,
-                LogLevel.Debug => EventTypeEnum.Information,
-                LogLevel.Information => EventTypeEnum.Information,
-                LogLevel.Warning => EventTypeEnum.Warning,
-                LogLevel.Error => EventTypeEnum.Error,
-                LogLevel.Critical => EventTypeEnum.Error,
-                LogLevel.None => EventTypeEnum.Error,
-                _ => EventTypeEnum.Information,
-            };
-
-
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
@@ -105,5 +87,18 @@ namespace XperienceAdapter.Logging
                 }
             }
         }
+
+        private EventTypeEnum MapLogLevel(LogLevel logLevel) =>
+            logLevel switch
+            {
+                LogLevel.Trace => EventTypeEnum.Information,
+                LogLevel.Debug => EventTypeEnum.Information,
+                LogLevel.Information => EventTypeEnum.Information,
+                LogLevel.Warning => EventTypeEnum.Warning,
+                LogLevel.Error => EventTypeEnum.Error,
+                LogLevel.Critical => EventTypeEnum.Error,
+                LogLevel.None => EventTypeEnum.Error,
+                _ => EventTypeEnum.Information,
+            };
     }
 }

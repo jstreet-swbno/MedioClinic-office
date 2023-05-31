@@ -1,9 +1,8 @@
-﻿using Kentico.Content.Web.Mvc;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+using Kentico.Content.Web.Mvc;
+
 using XperienceAdapter.Models;
 
 namespace Business.Models
@@ -15,9 +14,9 @@ namespace Business.Models
     {
         public override IEnumerable<string> SourceColumns => base.SourceColumns.Concat(new[]
         {
-        "Url",
-        "Icon"
-    });
+            "Url",
+            "Icon"
+        });
 
         /// <summary>
         /// URL to social media.

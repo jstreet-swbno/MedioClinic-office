@@ -29,12 +29,13 @@ using Common.Configuration;
 using XperienceAdapter.Localization;
 using MedioClinic.Configuration;
 using MedioClinic.Extensions;
+using MedioClinic.Models;
 
 namespace MedioClinic
 {
     public class Startup
     {
-        private const string ConventionalRoutingControllers = "Error";
+        private const string ConventionalRoutingControllers = "Error|ImageUploader|MediaLibraryUploader|FormTest|Account|Profile";
 
         public IConfiguration Configuration { get; }
 
@@ -53,23 +54,7 @@ namespace MedioClinic
             Options = configuration.GetSection(nameof(XperienceOptions));
         }
 
-        private void RegisterInitializationHandler(ContainerBuilder builder) =>
-            CMS.Base.ApplicationEvents.Initialized.Execute += (sender, eventArgs) => AutoFacConfig.ConfigureContainer(builder);
-
-        public void ConfigureContainer(ContainerBuilder builder)
-        {
-            try
-            {
-                AutoFacConfig.ConfigureContainer(builder);
-            }
-            catch
-            {
-                RegisterInitializationHandler(builder);
-            }
-        }
-
         // This method gets called by the runtime. Use this method to add services to the container.
-        // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
             // Enable desired Kentico Xperience features
@@ -89,7 +74,6 @@ namespace MedioClinic
 
             if (Environment.IsDevelopment())
             {
-
                 // By default, Xperience sends cookies using SameSite=Lax. If the administration and live site applications
                 // are hosted on separate domains, this ensures cookies are set with SameSite=None and Secure. The configuration
                 // only applies when communicating with the Xperience administration via preview links. Both applications also need 
@@ -105,19 +89,21 @@ namespace MedioClinic
 
             //services.AddAuthentication();
             // services.AddAuthorization();
-            services.Configure<XperienceOptions>(Options);
 
             services.AddLocalization();
             services.AddControllersWithViews()
-                    .AddDataAnnotationsLocalization(options =>
+                .AddDataAnnotationsLocalization(options =>
+                {
+                    options.DataAnnotationLocalizerProvider = (type, factory) =>
                     {
-                        options.DataAnnotationLocalizerProvider = (type, factory) =>
-                        {
-                            var assemblyName = typeof(SharedResource).GetTypeInfo().Assembly.GetName().Name;
+                        var assemblyName = typeof(SharedResource).GetTypeInfo().Assembly.GetName().Name;
 
-                            return factory.Create("SharedResource", assemblyName);
-                        };
-                    });
+                        return factory.Create("SharedResource", assemblyName);
+                    };
+                });
+
+            services.Configure<XperienceOptions>(Options);
+            var xperienceOptions = Options.Get<XperienceOptions>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -160,11 +146,13 @@ namespace MedioClinic
             app.UseStaticFiles();
 
             app.UseKentico();
-            app.UseRequestCulture();
+            
 
             app.UseCookiePolicy();
 
             app.UseCors();
+            app.UseRouting();
+            app.UseRequestCulture();
 
             //app.UseAuthentication();
             // app.UseAuthorization();
@@ -172,7 +160,45 @@ namespace MedioClinic
             app.UseEndpoints(endpoints =>
             {
                 endpoints.Kentico().MapRoutes();
+
+                endpoints.MapControllerRoute(
+                    name: "error",
+                    pattern: "{culture}/error/{code}",
+                    defaults: new { controller = "Error", action = "Index" },
+                    constraints: new
+                    {
+                        controller = ConventionalRoutingControllers
+                    });
+
+                endpoints.MapControllerRoute(
+                    name: "static",
+                    pattern: "{culture}/{controller}/{action}/{id?}",
+                    constraints: new
+                    {
+                        controller = ConventionalRoutingControllers
+                    });
+
+                endpoints.MapDefaultControllerRoute();
             });
+        }
+
+        /// <summary>
+        /// Registers a handler in case Xperience is not initialized yet.
+        /// </summary>
+        /// <param name="builder">Container builder.</param>
+        private void RegisterInitializationHandler(ContainerBuilder builder) =>
+            CMS.Base.ApplicationEvents.Initialized.Execute += (sender, eventArgs) => AutoFacConfig.ConfigureContainer(builder);
+
+        public void ConfigureContainer(ContainerBuilder builder)
+        {
+            try
+            {
+                AutoFacConfig.ConfigureContainer(builder);
+            }
+            catch
+            {
+                RegisterInitializationHandler(builder);
+            }
         }
     }
 }

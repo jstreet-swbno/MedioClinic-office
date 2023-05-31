@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 using XperienceAdapter.Models;
-using XperienceAdapter.Repositories;
-using XperienceAdapter.Services;
 
 namespace Business.Models
 {
@@ -14,13 +10,13 @@ namespace Business.Models
     {
         public override IEnumerable<string> SourceColumns => base.SourceColumns.Concat(new[]
         {
-        "Street",
-        "City",
-        "Country",
-        "PostalCode",
-        "EmailAddress",
-        "PhoneNumber"
-    });
+            "Street",
+            "City",
+            "Country",
+            "PostalCode",
+            "EmailAddress",
+            "PhoneNumber"
+        });
 
         public string? Street { get; set; }
 

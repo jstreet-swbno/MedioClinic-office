@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System;
+using System.Globalization;
+using System.Linq;
 using System.Threading;
-using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace MedioClinic.Middleware
 {
@@ -16,7 +18,7 @@ namespace MedioClinic.Middleware
             _next = next ?? throw new ArgumentNullException(nameof(next));
         }
 
-        public async Task Invoke(HttpContext httpContext)
+        public async Task InvokeAsync(HttpContext httpContext)
         {
             if (httpContext is null)
             {

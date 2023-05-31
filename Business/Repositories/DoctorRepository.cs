@@ -1,14 +1,16 @@
-﻿using Business.Extensions;
-using Business.Models;
-using CMS.DocumentEngine;
-using CMS.Membership;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
+
+using CMS.DocumentEngine;
+using CMS.Membership;
+
+using XperienceAdapter.Extensions;
 using XperienceAdapter.Repositories;
 using XperienceAdapter.Services;
+using Business.Extensions;
+using Business.Models;
 
 namespace Business.Repositories
 {
@@ -16,13 +18,11 @@ namespace Business.Repositories
     {
         private readonly IUserInfoProvider _userInfoProvider;
 
+
         public DoctorRepository(IRepositoryServices repositoryServices, IUserInfoProvider userInfoProvider) : base(repositoryServices)
         {
             _userInfoProvider = userInfoProvider ?? throw new ArgumentNullException(nameof(userInfoProvider));
         }
-
-        private static DayOfWeek? GetShiftDayOfWeek(IEnumerable<TreeNode> dayOfWeekPage) =>
-            dayOfWeekPage.ToDaysOfWeek().FirstOrDefault();
 
         public override void MapDtoProperties(CMS.DocumentEngine.Types.MedioClinic.Doctor page, Doctor dto)
         {
@@ -33,12 +33,12 @@ namespace Business.Repositories
             dto.Degree = page.Degree;
             dto.Biography = page.Fields.Biography;
             dto.Specialty = page.Specialty;
-
+ 
             if (page.Fields.BackdropPicture != null)
             {
-                dto.BackdropPictureUrl = _repositoryServices.PageAttachmentUrlRetriever.Retrieve(page.Fields.BackdropPicture);
+                dto.BackdropPictureUrl = _repositoryServices.PageAttachmentUrlRetriever.Retrieve(page.Fields.BackdropPicture); 
             }
-
+            
             var culture = Thread.CurrentThread.CurrentUICulture.ToSiteCulture();
 
             if (culture != null)
@@ -46,5 +46,8 @@ namespace Business.Repositories
                 dto.DoctorDetailUrl = _repositoryServices.PageUrlRetriever.Retrieve(page, culture.IsoCode).RelativePath;
             }
         }
+
+        private static DayOfWeek? GetShiftDayOfWeek(IEnumerable<TreeNode> dayOfWeekPage) =>
+            dayOfWeekPage.ToDaysOfWeek().FirstOrDefault();
     }
 }

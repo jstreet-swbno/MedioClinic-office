@@ -1,9 +1,6 @@
 ﻿using Kentico.Content.Web.Mvc;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace XperienceAdapter.Models
 {
@@ -13,19 +10,19 @@ namespace XperienceAdapter.Models
     public class BasicPage
     {
         public virtual IEnumerable<string> SourceColumns => new List<string>
-    {
-        "DocumentID",
-        "DocumentGUID",
-        "DocumentName",
-        "DocumentCulture",
-        "NodeID",
-        "NodeGUID",
-        "NodeAliasPath",
-        "NodeParentID",
-        "NodeSiteID",
-        "NodeLevel",
-        "NodeOrder"
-    };
+        {
+            "DocumentID",
+            "DocumentGUID",
+            "DocumentName",
+            "DocumentCulture",
+            "NodeID",
+            "NodeGUID",
+            "NodeAliasPath",
+            "NodeParentID",
+            "NodeSiteID",
+            "NodeLevel",
+            "NodeOrder"
+        };
 
         public int NodeId { get; set; }
 

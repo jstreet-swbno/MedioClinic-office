@@ -1,17 +1,12 @@
-﻿using CMS.DocumentEngine;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+
 using XperienceAdapter.Models;
-using XperienceAdapter.Repositories;
-using XperienceAdapter.Services;
 
 namespace Business.Models
 {
-    
     /// <summary>
     /// A general page with name, perex, and text.
     /// </summary>

@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+
 using XperienceAdapter.Models;
 
 namespace Business.Models
 {
-    // <summary>
+    /// <summary>
     /// Navigation item.
     /// </summary>
-    /// <remarks>Represents a navigation item in both modes: the content tree-based mode and the conventional routing one.</remarks>
+    /// <remarks>Represents a navigation item.</remarks>
     public class NavigationItem : BasicPage
     {
         /// <summary>

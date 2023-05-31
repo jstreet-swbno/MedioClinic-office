@@ -2,22 +2,14 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
-using CMS.Helpers;
 using Microsoft.Extensions.Localization;
+
+using CMS.Helpers;
 
 namespace XperienceAdapter.Localization
 {
     public class XperienceStringLocalizer : IStringLocalizer
     {
-        private string _cultureName;
-
-        public XperienceStringLocalizer() : this(Thread.CurrentThread.CurrentUICulture) { }
-
-        public XperienceStringLocalizer(CultureInfo culture)
-        {
-            _cultureName = culture.Name;
-        }
-
         public LocalizedString this[string name]
         {
             get

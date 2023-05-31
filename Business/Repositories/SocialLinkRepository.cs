@@ -1,11 +1,7 @@
-﻿using System;
-using Kentico.Content.Web.Mvc;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using XperienceAdapter.Repositories;
+﻿using Kentico.Content.Web.Mvc;
+
 using XperienceAdapter.Services;
+using XperienceAdapter.Repositories;
 
 namespace Business.Repositories
 {

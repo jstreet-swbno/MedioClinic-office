@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Common
 {
@@ -23,6 +22,4 @@ namespace Common
         /// <returns>All items.</returns>
         Task<IEnumerable<TDto>> GetAllAsync(CancellationToken? cancellationToken = default);
     }
-
-
 }

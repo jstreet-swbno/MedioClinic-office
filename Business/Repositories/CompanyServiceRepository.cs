@@ -1,11 +1,7 @@
-﻿using System;
-using Kentico.Content.Web.Mvc;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using XperienceAdapter.Repositories;
+﻿using Kentico.Content.Web.Mvc;
+
 using XperienceAdapter.Services;
+using XperienceAdapter.Repositories;
 
 namespace Business.Repositories
 {
@@ -20,7 +16,7 @@ namespace Business.Repositories
 
             if (page?.Fields?.Icon != null)
             {
-                dto.IconUrl = _repositoryServices.PageAttachmentUrlRetriever.Retrieve(page?.Fields?.Icon);
+                dto.IconUrl = _repositoryServices.PageAttachmentUrlRetriever.Retrieve(page?.Fields?.Icon); 
             }
         }
 

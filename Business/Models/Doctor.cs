@@ -2,8 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Business.Models
 {
@@ -12,14 +10,14 @@ namespace Business.Models
     /// </summary>
     public class Doctor : User
     {
-        public override IEnumerable<string> SourceColumns => base.SourceColumns.Concat(new[]
-        {
-        "Degree",
-        "EmergencyShift",
-        "Biography",
-        "Specialty",
-        "BackdropPicture"
-    });
+        public override IEnumerable<string> SourceColumns => base.SourceColumns.Concat(new[] 
+        { 
+            "Degree",
+            "EmergencyShift",
+            "Biography",
+            "Specialty",
+            "BackdropPicture"
+        });
 
         /// <summary>
         /// Academic degree.

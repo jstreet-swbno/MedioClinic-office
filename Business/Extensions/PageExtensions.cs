@@ -20,7 +20,7 @@ namespace Business.Extensions
                     {
                         daysOfWeek.Add(dayOfWeek);
                     }
-                }
+                } 
             }
 
             return daysOfWeek;
