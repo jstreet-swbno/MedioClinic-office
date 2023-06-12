@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- This is a CI serialization file for Kentico Sucks -->
+<cms.documentlocalization>
+  <DocumentContent />
+  <DocumentCreatedByUserID>
+    <CodeName>administrator</CodeName>
+    <GUID>6415b8ce-8072-4bcd-8e48-9d7178b826b7</GUID>
+    <ObjectType>cms.user</ObjectType>
+  </DocumentCreatedByUserID>
+  <DocumentCreatedWhen>2023-06-12 18:59:10Z</DocumentCreatedWhen>
+  <DocumentCulture>en-US</DocumentCulture>
+  <DocumentGUID>446143b6-103d-4ce6-8761-2372c36711ee</DocumentGUID>
+  <DocumentModifiedByUserID>
+    <CodeName>administrator</CodeName>
+    <GUID>6415b8ce-8072-4bcd-8e48-9d7178b826b7</GUID>
+    <ObjectType>cms.user</ObjectType>
+  </DocumentModifiedByUserID>
+  <DocumentModifiedWhen>2023-06-12 19:02:41Z</DocumentModifiedWhen>
+  <DocumentName>Kentico Sucks</DocumentName>
+  <DocumentNodeID>
+    <CodeName>/Landing-pages/Kentico-Sucks</CodeName>
+    <GUID>6025a5c6-e208-49bd-9e31-a35fc7ac5075</GUID>
+    <ObjectType>cms.node</ObjectType>
+    <Site>
+      <CodeName>MedioClinic</CodeName>
+      <GUID>b0586482-77d3-4ffd-8f08-238f333157ff</GUID>
+      <ObjectType>cms.site</ObjectType>
+    </Site>
+  </DocumentNodeID>
+  <DocumentPageBuilderWidgets>
+    <![CDATA[{"editableAreas":[{"identifier":"area01","sections":[{"identifier":"c0e39748-2e57-4bcb-b6ba-03b5668c8d0f","type":"MedioClinic.Section.TwoColumn","properties":{"leftColumnWidth":3},"zones":[{"identifier":"f90979af-67f8-4874-a8b4-031eefb29cab","name":"first","widgets":[{"identifier":"39fad8a9-0e17-407d-91e4-e639172f4e91","type":"Kentico.Widget.RichText","variants":[{"identifier":"6bec9d73-ba3c-44ee-aaef-2353677ee106","properties":{"content":"<h1>Crap</h1>"}}]}]},{"identifier":"ce53d8e3-015f-4643-b58c-83f96f4dedfa","name":"second","widgets":[{"identifier":"f15a8f89-e1c9-4e74-954c-c2d6ee557436","type":"MedioClinic.Widget.Text","variants":[{"identifier":"c771cc9b-2bef-4b5a-9259-6a7add703a48","properties":{"text":"<ol><li>So much code...</li><li>so little functionality?</li></ol>"}}]}]}]}]}]}]]>
+  </DocumentPageBuilderWidgets>
+  <DocumentPageTemplateConfiguration>
+    <![CDATA[{"identifier":"MedioClinic.PageTemplate.Basic","properties":{}}]]>
+  </DocumentPageTemplateConfiguration>
+  <DocumentPublishFrom>2023-06-12 18:58:57Z</DocumentPublishFrom>
+  <DocumentShowInMenu>False</DocumentShowInMenu>
+</cms.documentlocalization>

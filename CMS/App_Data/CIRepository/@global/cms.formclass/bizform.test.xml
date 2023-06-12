@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<cms.formclass>
+  <ClassDisplayName>test</ClassDisplayName>
+  <ClassFormDefinition>
+    <form version="2">
+      <field column="testID" columntype="integer" guid="4c6a719a-a3d3-4ced-8b5e-0315796a7c19" isPK="true">
+        <properties>
+          <fieldcaption>testID</fieldcaption>
+        </properties>
+      </field>
+      <field column="FormInserted" columnprecision="7" columntype="datetime" guid="2bb58dba-187e-44e0-bb95-096c01e7c2a9" system="true">
+        <properties>
+          <fieldcaption>Form inserted</fieldcaption>
+        </properties>
+      </field>
+      <field column="FormUpdated" columnprecision="7" columntype="datetime" guid="28f4db26-5e47-4e97-942f-6dfb4f043e95" system="true">
+        <properties>
+          <fieldcaption>Form updated</fieldcaption>
+        </properties>
+      </field>
+    </form>
+  </ClassFormDefinition>
+  <ClassGUID>cd2b9905-d1ba-4a32-b222-96238c1367a3</ClassGUID>
+  <ClassHasMetadata>False</ClassHasMetadata>
+  <ClassHasURL>False</ClassHasURL>
+  <ClassIsCoupledClass>True</ClassIsCoupledClass>
+  <ClassIsCustomTable>False</ClassIsCustomTable>
+  <ClassIsDocumentType>False</ClassIsDocumentType>
+  <ClassIsForm>True</ClassIsForm>
+  <ClassIsNavigationItem>False</ClassIsNavigationItem>
+  <ClassName>BizForm.test</ClassName>
+  <ClassNodeNameSource />
+  <ClassSearchCreationDateColumn>FormInserted</ClassSearchCreationDateColumn>
+  <ClassSearchEnabled>True</ClassSearchEnabled>
+  <ClassSearchSettings>
+    <search>
+      <item azurecontent="False" azureretrievable="True" azuresearchable="False" content="False" id="07463862-dc85-4bc6-a0c3-ebd7eebde5b8" name="FormUpdated" searchable="True" tokenized="False" updatetrigger="True" />
+      <item azurecontent="False" azureretrievable="True" azuresearchable="False" content="False" id="77a818bf-3e4b-46e3-b19d-029df21bbb64" name="FormInserted" searchable="True" tokenized="False" updatetrigger="True" />
+      <item azurecontent="False" azureretrievable="True" azuresearchable="False" content="False" id="d5762373-3843-427e-bf34-3a8c3b0f3aed" name="testID" searchable="True" tokenized="False" updatetrigger="True" />
+    </search>
+  </ClassSearchSettings>
+  <ClassShowAsSystemTable>False</ClassShowAsSystemTable>
+  <ClassTableName>Form_MedioClinic_test</ClassTableName>
+  <ClassUsesPageBuilder>False</ClassUsesPageBuilder>
+  <ClassUsesVersioning>False</ClassUsesVersioning>
+  <ClassXmlSchema>
+<![CDATA[
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="NewDataSet" xmlns="" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+  <xs:element name="NewDataSet" msdata:IsDataSet="true" msdata:UseCurrentLocale="true">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="Form_MedioClinic_test">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="testID" msdata:ReadOnly="true" msdata:AutoIncrement="true" type="xs:int" />
+              <xs:element name="FormInserted" type="xs:dateTime" />
+              <xs:element name="FormUpdated" type="xs:dateTime" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+    <xs:unique name="Constraint1" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//Form_MedioClinic_test" />
+      <xs:field xpath="testID" />
+    </xs:unique>
+  </xs:element>
+</xs:schema>
+]]>
+  </ClassXmlSchema>
+</cms.formclass>

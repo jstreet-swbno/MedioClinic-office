@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<cms.pageurlpath>
+  <PageUrlPathCulture>es-ES</PageUrlPathCulture>
+  <PageUrlPathGUID>5665c29b-4cd1-4b7d-8b39-f1e883c90e07</PageUrlPathGUID>
+  <PageUrlPathNodeID>
+    <CodeName>/Landing-pages/Kentico-Sucks</CodeName>
+    <GUID>6025a5c6-e208-49bd-9e31-a35fc7ac5075</GUID>
+    <ObjectType>cms.node</ObjectType>
+    <Site>
+      <CodeName>MedioClinic</CodeName>
+      <GUID>b0586482-77d3-4ffd-8f08-238f333157ff</GUID>
+      <ObjectType>cms.site</ObjectType>
+    </Site>
+  </PageUrlPathNodeID>
+  <PageUrlPathSiteID>
+    <CodeName>MedioClinic</CodeName>
+    <GUID>b0586482-77d3-4ffd-8f08-238f333157ff</GUID>
+    <ObjectType>cms.site</ObjectType>
+  </PageUrlPathSiteID>
+  <PageUrlPathUrlPath>es-ES/Paginas-de-destino/Kentico-Sucks</PageUrlPathUrlPath>
+  <PageUrlPathUrlPathHash>
+    <![CDATA[191B8B33A8CA720583CE8DC7490F41294E08ED780DB330BDAD3B91D29999C2BE]]>
+  </PageUrlPathUrlPathHash>
+</cms.pageurlpath>

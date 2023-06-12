@@ -1,12 +1,14 @@
-﻿using Business.Models;
-using Microsoft.AspNetCore.Http;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+
+
 using XperienceAdapter.Models;
+using Business.Models;
 
 namespace Business.Services
 {
@@ -47,11 +49,94 @@ namespace Business.Services
                 }
             },
         };
+
+        public async Task<ProcessedFile> ProcessFormFileAsync(IFormFile formFile,
+            string[] permittedExtensions,
+            long sizeLimit = 4194304)
+        {
+            // Don't trust the file name sent by the client. To display
+            // the file name, HTML-encode the value.
+            var trustedFileNameForDisplay = WebUtility.HtmlEncode(
+                formFile.FileName);
+
+            // Check the file length. This check doesn't catch files that only have 
+            // a BOM as their content.
+            if (formFile.Length == 0)
+            {
+                return new ProcessedFile(FormFileResultState.FileEmpty);
+            }
+
+            if (formFile.Length > sizeLimit)
+            {
+                return new ProcessedFile(FormFileResultState.FileTooBig);
+            }
+
+            using (var memoryStream = new MemoryStream())
+            {
+                await formFile.CopyToAsync(memoryStream);
+
+                // Check the content length in case the file's only
+                // content was a BOM and the content is actually
+                // empty after removing the BOM.
+                if (memoryStream.Length == 0)
+                {
+                    return new ProcessedFile(FormFileResultState.FileEmpty);
+                }
+
+                var safeName = GetSafeFileName(formFile.FileName);
+
+                if (!IsValidFileExtensionAndSignature(
+                    safeName.Name, $".{safeName.Extension}", memoryStream, permittedExtensions))
+                {
+                    return new ProcessedFile(FormFileResultState.ForbiddenFileType);
+                }
+                else
+                {
+                    var uploadedFile = new UploadedFile(formFile);
+                    uploadedFile.FileName = $"{safeName.Name}.{safeName.Extension}";
+
+                    return new ProcessedFile(FormFileResultState.FileOk, new UploadedFile(formFile));
+                }
+            }
+        }
+
+        public (string Name, string Extension) GetSafeFileName(string completeFileName)
+        {
+            if (string.IsNullOrEmpty(completeFileName))
+            {
+                throw new ArgumentException("File name is null or an empty string.", nameof(completeFileName));
+            }
+
+            var separator = '.';
+            var segments = completeFileName.Split(separator);
+            string name, extension;
+
+            if (segments?.Length > 1)
+            {
+                var subtractedLength = segments.Length - 1;
+                string[] segmentsExceptLast = new string[subtractedLength];
+                Array.Copy(segments, segmentsExceptLast, subtractedLength);
+                name = segmentsExceptLast.Length == 1 ? segmentsExceptLast[0] : string.Join(separator.ToString(), segmentsExceptLast);
+                extension = segments[subtractedLength];
+            }
+            else
+            {
+                name = completeFileName;
+                extension = null;
+            }
+
+            var safeName = RemoveNonLettersOrDigits(name)?.ToLowerInvariant();
+            var safeExtension = RemoveNonLettersOrDigits(extension)?.ToLowerInvariant();
+
+            return (safeName, safeExtension);
+        }
+
         private static string RemoveNonLettersOrDigits(string input) =>
              new string((from c in input
                          where char.IsWhiteSpace(c) || char.IsLetterOrDigit(c)
                          select c)
                 .ToArray());
+
         private static bool IsValidFileExtensionAndSignature(string fileName, string fileExtension, Stream data, string[] permittedExtensions)
         {
             if (string.IsNullOrEmpty(fileName) || data == null || data.Length == 0)
@@ -109,87 +194,6 @@ namespace Business.Services
 
                 return signatures.Any(signature =>
                     headerBytes.Take(signature.Length).SequenceEqual(signature));
-            }
-        }
-
-        public (string Name, string Extension) GetSafeFileName(string completeFileName)
-        {
-            if (string.IsNullOrEmpty(completeFileName))
-            {
-                throw new ArgumentException("File name is null or an empty string.", nameof(completeFileName));
-            }
-
-            var separator = '.';
-            var segments = completeFileName.Split(separator);
-            string name, extension;
-
-            if (segments?.Length > 1)
-            {
-                var subtractedLength = segments.Length - 1;
-                string[] segmentsExceptLast = new string[subtractedLength];
-                Array.Copy(segments, segmentsExceptLast, subtractedLength);
-                name = segmentsExceptLast.Length == 1 ? segmentsExceptLast[0] : string.Join(separator.ToString(), segmentsExceptLast);
-                extension = segments[subtractedLength];
-            }
-            else
-            {
-                name = completeFileName;
-                extension = null;
-            }
-
-            var safeName = RemoveNonLettersOrDigits(name)?.ToLowerInvariant();
-            var safeExtension = RemoveNonLettersOrDigits(extension)?.ToLowerInvariant();
-
-            return (safeName, safeExtension);
-        }
-
-        public async Task<ProcessedFile> ProcessFormFileAsync(IFormFile formFile,
-    string[] permittedExtensions,
-    long sizeLimit = 4194304)
-        {
-            // Don't trust the file name sent by the client. To display
-            // the file name, HTML-encode the value.
-            var trustedFileNameForDisplay = WebUtility.HtmlEncode(
-                formFile.FileName);
-
-            // Check the file length. This check doesn't catch files that only have 
-            // a BOM as their content.
-            if (formFile.Length == 0)
-            {
-                return new ProcessedFile(FormFileResultState.FileEmpty);
-            }
-
-            if (formFile.Length > sizeLimit)
-            {
-                return new ProcessedFile(FormFileResultState.FileTooBig);
-            }
-
-            using (var memoryStream = new MemoryStream())
-            {
-                await formFile.CopyToAsync(memoryStream);
-
-                // Check the content length in case the file's only
-                // content was a BOM and the content is actually
-                // empty after removing the BOM.
-                if (memoryStream.Length == 0)
-                {
-                    return new ProcessedFile(FormFileResultState.FileEmpty);
-                }
-
-                var safeName = GetSafeFileName(formFile.FileName);
-
-                if (!IsValidFileExtensionAndSignature(
-                    safeName.Name, $".{safeName.Extension}", memoryStream, permittedExtensions))
-                {
-                    return new ProcessedFile(FormFileResultState.ForbiddenFileType);
-                }
-                else
-                {
-                    var uploadedFile = new UploadedFile(formFile);
-                    uploadedFile.FileName = $"{safeName.Name}.{safeName.Extension}";
-
-                    return new ProcessedFile(FormFileResultState.FileOk, new UploadedFile(formFile));
-                }
             }
         }
     }

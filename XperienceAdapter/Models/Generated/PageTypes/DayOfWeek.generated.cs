@@ -8,6 +8,9 @@
 //
 // </auto-generated>
 //--------------------------------------------------------------------------------------------------
+
+using System;
+using System.Collections.Generic;
 using CMS;
 using CMS.Base;
 using CMS.Helpers;

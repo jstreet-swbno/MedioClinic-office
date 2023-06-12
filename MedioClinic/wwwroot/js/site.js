@@ -68,4 +68,5 @@ document.addEventListener("DOMContentLoaded", function () {
 
         return section;
     };
+
 }(window.medioClinic = window.medioClinic || {}));

@@ -30,12 +30,13 @@ using XperienceAdapter.Localization;
 using MedioClinic.Configuration;
 using MedioClinic.Extensions;
 using MedioClinic.Models;
+using MedioClinic.PageTemplates;
 
 namespace MedioClinic
 {
     public class Startup
     {
-        private const string ConventionalRoutingControllers = "Error|ImageUploader|MediaLibraryUploader|FormTest|Account|Profile";
+        private const string ConventionalRoutingControllers = "Error|ImageUploader|MediaLibraryUploader|FormTest";
 
         public IConfiguration Configuration { get; }
 
@@ -60,7 +61,7 @@ namespace MedioClinic
             // Enable desired Kentico Xperience features
             var kenticoServiceCollection = services.AddKentico(features =>
             {
-                // features.UsePageBuilder();
+                features.UsePageBuilder();
                 // features.UseActivityTracking();
                 // features.UseABTesting();
                 // features.UseWebAnalytics();
@@ -69,8 +70,6 @@ namespace MedioClinic
                 // features.UseScheduler();
                 features.UsePageRouting(new PageRoutingOptions { CultureCodeRouteValuesKey = "culture" });
             });
-            
-            services.AddAntiforgery();
 
             if (Environment.IsDevelopment())
             {
@@ -87,10 +86,12 @@ namespace MedioClinic
                 kenticoServiceCollection.DisableVirtualContextSecurityForLocalhost();
             }
 
-            //services.AddAuthentication();
+            services.AddAuthentication();
             // services.AddAuthorization();
 
             services.AddLocalization();
+            services.AddAntiforgery(options => options.SuppressXFrameOptionsHeader = false);
+
             services.AddControllersWithViews()
                 .AddDataAnnotationsLocalization(options =>
                 {
@@ -104,6 +105,8 @@ namespace MedioClinic
 
             services.Configure<XperienceOptions>(Options);
             var xperienceOptions = Options.Get<XperienceOptions>();
+
+            ConfigurePageBuilderFilters();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -143,19 +146,22 @@ namespace MedioClinic
 
             app.UseLocalizedStatusCodePagesWithReExecute("/{0}/error/{1}/");
 
+            app.UseHttpsRedirection();
+
             app.UseStaticFiles();
 
             app.UseKentico();
-            
 
             app.UseCookiePolicy();
 
             app.UseCors();
+
             app.UseRouting();
+
             app.UseRequestCulture();
 
-            //app.UseAuthentication();
-            // app.UseAuthorization();
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
@@ -200,5 +206,11 @@ namespace MedioClinic
                 RegisterInitializationHandler(builder);
             }
         }
+
+        /// <summary>
+        /// Configures the page template filters.
+        /// </summary>
+        private static void ConfigurePageBuilderFilters() =>
+            PageBuilderFilters.PageTemplates.Add(new EventPageTemplateFilter());
     }
 }
